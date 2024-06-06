@@ -2,10 +2,6 @@ use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
-use std::collections::HashSet;
-
-mod view;
-use view::board_view;
 
 mod model;
 use model::game::make_blank_board;
@@ -13,6 +9,12 @@ use model::game::GameState;
 
 mod player;
 use player::player_rect::PlayerRect;
+
+mod utils;
+use utils::key_manager::KeyManager;
+
+mod view;
+use view::board_view;
 
 fn main() -> Result<(), String>{
 
@@ -42,13 +44,13 @@ fn main() -> Result<(), String>{
     game_state.print_board();
 
     // Define movable player character.
-    let mut player_rect = PlayerRect::new(
+    let player_rect = PlayerRect::new(
         "New Player".to_string(), 
         0, 0, 50, 80);
 
-    let mut pressed_keys: HashSet<Keycode> = HashSet::new();
-
     let mut event_pump = sdl_context.event_pump().unwrap();
+    let mut key_manager = KeyManager::new();
+
     'running: loop {
         canvas.clear();
         for event in event_pump.poll_iter() {
@@ -58,14 +60,6 @@ fn main() -> Result<(), String>{
                     break 'running
                 },
 
-                // Event::MouseMotion { 
-                //     x, y, xrel, yrel, .. } => {
-
-                //     println!("Mouse x: {}, y: {}", x, y);
-                //     println!("Relative x: {}, y: {}\n", xrel, yrel);
-                    
-                // },
-
                 Event::MouseButtonDown { 
                     x, y, .. } => {
                         let col: usize = (5 * x / board_view.screen_area.w).try_into().unwrap();
@@ -73,33 +67,30 @@ fn main() -> Result<(), String>{
                         game_state.handle_click(row, col);
                     }
                 
-                Event::KeyDown { keycode: Some(keycode), .. } => {
-                    pressed_keys.insert(keycode);
+                Event::KeyDown { keycode, .. } => {
+                    match keycode {
+                        Some(key) => {
+                            key_manager.key_down(key.to_string())
+                        },
+                        None => {}
+                    }
                 },
-                Event::KeyUp { keycode: Some(keycode), .. } => {
-                    pressed_keys.remove(&keycode);
+                Event::KeyUp { keycode, .. } => {
+                    match keycode {
+                        Some(key) => {
+                            key_manager.key_up(key.to_string())
+                        },
+                        None => {}
+                    }
                 },
 
                 _ => {}
             }
         }
-
-        // Update player position based on pressed keys
-        if pressed_keys.contains(&Keycode::W) {
-            player_rect.move_up();
-        }
-        if pressed_keys.contains(&Keycode::A) {
-            player_rect.move_left();
-        }
-        if pressed_keys.contains(&Keycode::S) {
-            player_rect.move_down();
-        }
-        if pressed_keys.contains(&Keycode::D) {
-            player_rect.move_right();
-        }
+                
         // The rest of the game loop goes here...
         
-        board_view.render(&mut canvas, &game_state.board, &player_rect);
+        board_view.render(&mut canvas, &game_state.board, &player_rect, &key_manager);
 
 
         canvas.present();

@@ -7,6 +7,7 @@ use std::time::Duration;
 
 use crate::model::game::BoardPiece;
 use crate::player::player_rect::PlayerRect;
+use crate::utils::key_manager::KeyManager;
 
 const ROW_COL_SIZE: i32 = 5;
 const MAX_RGB: u8 = 255;
@@ -22,7 +23,8 @@ impl Renderer {
         &mut self, 
         canvas: &mut Canvas<Window>,
         board: &[[BoardPiece; 5]; 5],
-        player_rect: &PlayerRect) {
+        player_rect: &PlayerRect,
+        key_manager: &KeyManager) {
         
             // Initialze syncronous static count
             static COUNT: AtomicUsize = AtomicUsize::new(0);

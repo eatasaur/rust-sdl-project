@@ -4,5 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sdl2 = '*'
+specs = { version = "0.20.0" }
+specs-derive = { version = "0.4.1" }
 rand = "0.8.5"
+
+[dependencies.sdl2]
+version = "*"
+features = ["image","ttf"]
